@@ -4,14 +4,14 @@ const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
 // =====================================================
-// IMAGEM
+// SPRITE SHEET
 // =====================================================
 
 const spriteSheet = new Image();
 spriteSheet.src = "Spritesheet-1.png.png";
 
 // =====================================================
-// ESTADOS
+// ESTADOS DO JOGO
 // =====================================================
 
 const ESTADO = {
@@ -51,14 +51,22 @@ const SPRITES = {
         altura: 35
     },
 
-    canoSuperior: {
+    /*
+        Este cano tem a parte larga em cima.
+        Será usado no cano de baixo.
+    */
+    canoBocaEmCima: {
         x: 85,
         y: 13,
         largura: 20,
         altura: 39
     },
 
-    canoInferior: {
+    /*
+        Este cano tem a parte larga embaixo.
+        Será usado no cano de cima.
+    */
+    canoBocaEmbaixo: {
         x: 115,
         y: 15,
         largura: 20,
@@ -99,7 +107,6 @@ const passaro = {
     altura: 42,
 
     velocidadeY: 0,
-
     gravidade: 0.42,
     forcaDoPulo: -7.5,
 
@@ -140,8 +147,18 @@ function prepararCanos() {
     canos = [];
 
     criarCano(canvas.width + 120);
-    criarCano(canvas.width + 120 + distanciaEntreCanos);
-    criarCano(canvas.width + 120 + distanciaEntreCanos * 2);
+
+    criarCano(
+        canvas.width +
+        120 +
+        distanciaEntreCanos
+    );
+
+    criarCano(
+        canvas.width +
+        120 +
+        distanciaEntreCanos * 2
+    );
 }
 
 // =====================================================
@@ -153,14 +170,14 @@ let nuvens = [];
 function prepararNuvens() {
     nuvens = [
         {
-            x: 50,
-            y: 90,
+            x: 40,
+            y: 85,
             tipo: "grande",
             velocidade: 0.25
         },
         {
-            x: 300,
-            y: 190,
+            x: 295,
+            y: 180,
             tipo: "pequena",
             velocidade: 0.18
         },
@@ -183,14 +200,19 @@ function atualizarNuvens() {
                 : 60;
 
         if (nuvem.x + largura < 0) {
-            nuvem.x = canvas.width + Math.random() * 150;
-            nuvem.y = 60 + Math.random() * 300;
+            nuvem.x =
+                canvas.width +
+                Math.random() * 150;
+
+            nuvem.y =
+                60 +
+                Math.random() * 300;
         }
     }
 }
 
 // =====================================================
-// INÍCIO E FIM
+// INÍCIO E GAME OVER
 // =====================================================
 
 function iniciarJogo() {
@@ -198,6 +220,8 @@ function iniciarJogo() {
 
     passaro.y = canvas.height / 2;
     passaro.velocidadeY = 0;
+    passaro.frame = 0;
+    passaro.contadorDoFrame = 0;
 
     prepararCanos();
     prepararNuvens();
@@ -229,7 +253,8 @@ function encerrarJogo() {
 function baterAsas() {
     if (estadoAtual === ESTADO.MENU) {
         iniciarJogo();
-        passaro.velocidadeY = passaro.forcaDoPulo;
+        passaro.velocidadeY =
+            passaro.forcaDoPulo;
         return;
     }
 
@@ -238,22 +263,31 @@ function baterAsas() {
         return;
     }
 
-    passaro.velocidadeY = passaro.forcaDoPulo;
+    if (estadoAtual === ESTADO.JOGANDO) {
+        passaro.velocidadeY =
+            passaro.forcaDoPulo;
+    }
 }
 
-document.addEventListener("keydown", function (evento) {
-    if (
-        evento.code === "Space" ||
-        evento.code === "ArrowUp"
-    ) {
-        evento.preventDefault();
+document.addEventListener(
+    "keydown",
+    function (evento) {
+        if (
+            evento.code === "Space" ||
+            evento.code === "ArrowUp"
+        ) {
+            evento.preventDefault();
+            baterAsas();
+        }
+    }
+);
+
+canvas.addEventListener(
+    "click",
+    function () {
         baterAsas();
     }
-});
-
-canvas.addEventListener("click", function () {
-    baterAsas();
-});
+);
 
 canvas.addEventListener(
     "touchstart",
@@ -269,14 +303,19 @@ canvas.addEventListener(
 // =====================================================
 
 function atualizarPassaro() {
-    passaro.velocidadeY += passaro.gravidade;
-    passaro.y += passaro.velocidadeY;
+    passaro.velocidadeY +=
+        passaro.gravidade;
+
+    passaro.y +=
+        passaro.velocidadeY;
 
     passaro.contadorDoFrame++;
 
     if (passaro.contadorDoFrame >= 8) {
         passaro.frame =
-            passaro.frame === 0 ? 1 : 0;
+            passaro.frame === 0
+                ? 1
+                : 0;
 
         passaro.contadorDoFrame = 0;
     }
@@ -287,11 +326,13 @@ function atualizarPassaro() {
     }
 
     if (
-        passaro.y + passaro.altura >=
+        passaro.y +
+        passaro.altura >=
         limiteDoChao
     ) {
         passaro.y =
-            limiteDoChao - passaro.altura;
+            limiteDoChao -
+            passaro.altura;
 
         encerrarJogo();
     }
@@ -307,7 +348,9 @@ function atualizarCanos() {
 
         if (
             !cano.passou &&
-            cano.x + cano.largura < passaro.x
+            cano.x +
+            cano.largura <
+            passaro.x
         ) {
             cano.passou = true;
             pontuacao++;
@@ -334,7 +377,7 @@ function atualizarCanos() {
 }
 
 // =====================================================
-// COLISÃO
+// COLISÕES
 // =====================================================
 
 function verificarColisoes() {
@@ -358,9 +401,12 @@ function verificarColisoes() {
         margemY;
 
     for (const cano of canos) {
-        const esquerdaCano = cano.x;
+        const esquerdaCano =
+            cano.x;
+
         const direitaCano =
-            cano.x + cano.largura;
+            cano.x +
+            cano.largura;
 
         const baseCanoSuperior =
             cano.alturaSuperior;
@@ -370,22 +416,26 @@ function verificarColisoes() {
             cano.abertura;
 
         const estaNaHorizontal =
-            direitaPassaro > esquerdaCano &&
-            esquerdaPassaro < direitaCano;
+            direitaPassaro >
+                esquerdaCano &&
+            esquerdaPassaro <
+                direitaCano;
 
         if (!estaNaHorizontal) {
             continue;
         }
 
-        const bateuNoSuperior =
-            topoPassaro < baseCanoSuperior;
+        const bateuNoCanoSuperior =
+            topoPassaro <
+            baseCanoSuperior;
 
-        const bateuNoInferior =
-            basePassaro > topoCanoInferior;
+        const bateuNoCanoInferior =
+            basePassaro >
+            topoCanoInferior;
 
         if (
-            bateuNoSuperior ||
-            bateuNoInferior
+            bateuNoCanoSuperior ||
+            bateuNoCanoInferior
         ) {
             encerrarJogo();
             return;
@@ -422,9 +472,20 @@ function desenharFundo() {
             canvas.height
         );
 
-    gradiente.addColorStop(0, "#65c7f4");
-    gradiente.addColorStop(0.7, "#c7efff");
-    gradiente.addColorStop(1, "#ffffff");
+    gradiente.addColorStop(
+        0,
+        "#65c7f4"
+    );
+
+    gradiente.addColorStop(
+        0.7,
+        "#c7efff"
+    );
+
+    gradiente.addColorStop(
+        1,
+        "#ffffff"
+    );
 
     ctx.fillStyle = gradiente;
 
@@ -437,7 +498,7 @@ function desenharFundo() {
 }
 
 // =====================================================
-// NUVENS
+// DESENHAR NUVENS
 // =====================================================
 
 function desenharNuvens() {
@@ -478,7 +539,7 @@ function desenharNuvens() {
 }
 
 // =====================================================
-// CANOS
+// DESENHAR CANOS
 // =====================================================
 
 function desenharCanos() {
@@ -491,7 +552,8 @@ function desenharCanos() {
             cano.abertura;
 
         const alturaInferior =
-            limiteDoChao - topoInferior;
+            limiteDoChao -
+            topoInferior;
 
         desenharCanoSuperior(
             cano.x,
@@ -508,24 +570,19 @@ function desenharCanos() {
     }
 }
 
+/*
+    CANO DE CIMA
+
+    Usa o sprite cuja parte larga fica embaixo,
+    apontada para a passagem do pássaro.
+*/
 function desenharCanoSuperior(
     x,
     altura,
     largura
 ) {
-    const sprite = SPRITES.canoSuperior;
-
-    ctx.save();
-
-    ctx.translate(
-        x,
-        altura
-    );
-
-    ctx.scale(
-        1,
-        -1
-    );
+    const sprite =
+        SPRITES.canoBocaEmbaixo;
 
     ctx.drawImage(
         spriteSheet,
@@ -535,22 +592,27 @@ function desenharCanoSuperior(
         sprite.largura,
         sprite.altura,
 
-        0,
+        x,
         0,
         largura,
         altura
     );
-
-    ctx.restore();
 }
 
+/*
+    CANO DE BAIXO
+
+    Usa o sprite cuja parte larga fica em cima,
+    apontada para a passagem do pássaro.
+*/
 function desenharCanoInferior(
     x,
     y,
     largura,
     altura
 ) {
-    const sprite = SPRITES.canoInferior;
+    const sprite =
+        SPRITES.canoBocaEmCima;
 
     ctx.drawImage(
         spriteSheet,
@@ -604,12 +666,15 @@ function desenharChao() {
 
     ctx.beginPath();
     ctx.moveTo(0, limiteDoChao);
-    ctx.lineTo(canvas.width, limiteDoChao);
+    ctx.lineTo(
+        canvas.width,
+        limiteDoChao
+    );
     ctx.stroke();
 }
 
 // =====================================================
-// PÁSSARO
+// DESENHAR PÁSSARO
 // =====================================================
 
 function desenharPassaro() {
@@ -634,11 +699,15 @@ function desenharPassaro() {
     );
 
     let inclinacao =
-        passaro.velocidadeY * 0.045;
+        passaro.velocidadeY *
+        0.045;
 
     inclinacao = Math.max(
         -0.35,
-        Math.min(1.1, inclinacao)
+        Math.min(
+            1.1,
+            inclinacao
+        )
     );
 
     ctx.rotate(inclinacao);
@@ -662,7 +731,7 @@ function desenharPassaro() {
 }
 
 // =====================================================
-// INTERFACE
+// PONTUAÇÃO
 // =====================================================
 
 function desenharPontuacao() {
@@ -690,6 +759,10 @@ function desenharPontuacao() {
         80
     );
 }
+
+// =====================================================
+// BOTÃO
+// =====================================================
 
 function desenharBotao(
     x,
@@ -730,6 +803,10 @@ function desenharBotao(
 
     ctx.textBaseline = "alphabetic";
 }
+
+// =====================================================
+// MENU
+// =====================================================
 
 function desenharMenu() {
     ctx.fillStyle =
@@ -795,6 +872,10 @@ function desenharMenu() {
         415
     );
 }
+
+// =====================================================
+// GAME OVER
+// =====================================================
 
 function desenharGameOver() {
     ctx.fillStyle =
@@ -875,14 +956,16 @@ function desenhar() {
 }
 
 // =====================================================
-// LOOP
+// LOOP PRINCIPAL
 // =====================================================
 
 function loopDoJogo() {
     atualizar();
     desenhar();
 
-    requestAnimationFrame(loopDoJogo);
+    requestAnimationFrame(
+        loopDoJogo
+    );
 }
 
 spriteSheet.onload = function () {
